@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Media Application</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Interactive Media Application</h1>
+
+<nav>
+    <button onclick="showSection('audioVideoSection')">Audio & Video</button>
+    <button onclick="showSection('canvasSection')">Canvas Animation</button>
+    <button onclick="showSection('imageSection')">Image Manipulation</button>
+</nav>
+
+<section id="audioVideoSection" style="display:none;">
+    <h2>Audio and Video Player</h2>
+
+    <audio id="audioPlayer" controls>
+        <source src="audiofile.mp3" type="audio/mpeg">
+    </audio>
+    <button onclick="playPauseAudio()">Play/Pause</button>
+    <button onclick="muteUnmuteAudio()">Mute/Unmute</button>
+    <br>
+
+    <video id="videoPlayer" width="400" controls>
+        <source src="videofile.mp4" type="video/mp4">
+        Your browser does not support the video element.
+    </video>
+    <button onclick="playPauseVideo()">Play/Pause</button>
+    <button onclick="muteUnmuteVideo()">Mute/Unmute</button>
+</section>
+
+<section id="canvasSection" style="display:none;">
+    <h2>Canvas Animation</h2>
+    <canvas id="canvas" width="500" height="500" style="border:1px solid #000;"></canvas>
+</section>
+
+<section id="imageSection" style="display:none;">
+    <h2>Image Upload and Manipulation</h2>
+    <input type="file" id="imageUploader" accept="image/*">
+    <br>
+    <canvas id="imageCanvas" width="500" height="500" style="border:1px solid #000;"></canvas>
+    <button onclick="applyFilter()">Apply Filter</button>
+    <button onclick="resizeImage()">Resize</button>
+    <button onclick="downloadImage()">Download</button>
+</section>
+
+<script>
+    function showSection(sectionId) {
+        document.getElementById('audioVideoSection').style.display = 'none';
+        document.getElementById('canvasSection').style.display = 'none';
+        document.getElementById('imageSection').style.display = 'none';
+        document.getElementById(sectionId).style.display = 'block';
+    }
+    showSection('audioVideoSection');
+
+    const audio = document.getElementById('audioPlayer');
+    function playPauseAudio() {
+        audio.paused ? audio.play() : audio.pause();
+    }
+    function muteUnmuteAudio() {
+        audio.muted = !audio.muted;
+    }
+
+    const video = document.getElementById('videoPlayer');
+    function playPauseVideo() {
+        video.paused ? video.play() : video.pause();
+    }
+    function muteUnmuteVideo() {
+        video.muted = !video.muted;
+    }
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let x = 50, y = 50, dx = 2, dy = 2;
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, Math.PI * 2);
+        ctx.fillStyle = "blue";
+        ctx.fill();
+        ctx.closePath();
+
+        x += dx;
+        y += dy;
+        if (x + 20 > canvas.width || x - 20 < 0) dx = -dx;
+        if (y + 20 > canvas.height || y - 20 < 0) dy = -dy;
+
+        requestAnimationFrame(draw);
+    }
+    draw();
+
+    const imageCanvas = document.getElementById('imageCanvas');
+    const imageCtx = imageCanvas.getContext('2d');
+    let originalImage = new Image();
+
+    document.getElementById('imageUploader').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            originalImage.src = e.target.result;
+            originalImage.onload = () => imageCtx.drawImage(originalImage, 0, 0, imageCanvas.width, imageCanvas.height);
+        };
+        reader.readAsDataURL(file);
+    });
+
+    function applyFilter() {
+        let imageData = imageCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
+        let data = imageData.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+            data[i] = data[i] * 1.2;
+            data[i + 1] = data[i + 1] * 1;
+            data[i + 2] = data[i + 2] * 0.8;
+        }
+        imageCtx.putImageData(imageData, 0, 0);
+    }
+
+    function resizeImage() {
+        imageCanvas.width = 300;
+        imageCanvas.height = 300;
+        imageCtx.drawImage(originalImage, 0, 0, imageCanvas.width, imageCanvas.height);
+    }
+
+    function downloadImage() {
+        const link = document.createElement('a');
+        link.download = 'manipulated_image.png';
+        link.href = imageCanvas.toDataURL();
+        link.click();
+    }
+</script>
+
+</body>
+</html>
